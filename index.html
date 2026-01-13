@@ -46,7 +46,6 @@ html, body {
 .project-container {
     width: 100%;
     height: 100%;
-    /* max-width removed so it can expand fully */
     background: #111;
     position: relative;
     overflow: hidden;
@@ -58,7 +57,7 @@ iframe {
     width: 100%;
     height: 100%;
     border: none;
-    aspect-ratio: auto; /* unlocked ratio */
+    aspect-ratio: auto;
     z-index: 1;
 }
 
@@ -170,7 +169,7 @@ iframe {
 const CONFIG = {
     PAGE_SIZE: 12,
     PROXY: 'https://api.allorigins.win/get?url=',
-    TURBOWARP_OPTS: '' // unlocked fps, no 60fps cap
+    TURBOWARP_OPTS: ''
 };
 
 const state = {
@@ -227,13 +226,17 @@ function createSlide(project) {
                 <div class="project-title">${project.title}</div>
             </div>
             <div class="side-bar">
-                <button class="action-btn" onclick="like(this)">
+                <button class="action-btn" title="Like disabled">
                     <div class="icon-circle">❤️</div>
                     <span class="action-label">${num(project.stats?.loves || 0)}</span>
                 </button>
                 <button class="action-btn" onclick="window.open('https://scratch.mit.edu/projects/${project.id}')">
                     <div class="icon-circle">⭐</div>
                     <span class="action-label">${num(project.stats?.favorites || 0)}</span>
+                </button>
+                <button class="action-btn" onclick="showDescription('${escapeHtml(project.description || 'No description')}', '${escapeHtml(project.title)}')">
+                    <div class="icon-circle">ℹ️</div>
+                    <span class="action-label">Desc</span>
                 </button>
             </div>
         </div>
@@ -273,13 +276,6 @@ async function loadMore() {
     });
 }
 
-function like(btn) {
-    if (btn.dataset.liked) return;
-    btn.dataset.liked = true;
-    const l = btn.querySelector('.action-label');
-    l.textContent = num(parseInt(l.textContent.replace(/,/g,'')) + 1);
-}
-
 function heart(e) {
     const h = document.createElement('div');
     h.className = 'heart-pop';
@@ -297,10 +293,20 @@ function num(n) {
 }
 
 feed.addEventListener('scroll', () => {
-    if (feed.scrollHeight - (feed.scrollTop + feed.clientHeight) < 1000) {
-        loadMore();
-    }
+    if (feed.scrollHeight - (feed.scrollTop + feed.clientHeight) < 1000) loadMore();
 });
+
+function showDescription(desc, title) {
+    alert(`${title}\n\n${desc}`);
+}
+
+function escapeHtml(text) {
+    return text.replace(/&/g, "&amp;")
+               .replace(/</g, "&lt;")
+               .replace(/>/g, "&gt;")
+               .replace(/"/g, "&quot;")
+               .replace(/'/g, "&#039;");
+}
 
 loadMore();
 </script>
