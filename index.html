@@ -1,598 +1,958 @@
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-    <title>ScratchTok Ultra — Personalized Feed</title>
-    <style>
-        :root {
-            --bg: #050505;
-            --accent: #ff0050;
-            --glass: rgba(255,255,255,0.15);
-            --text: #ffffff;
-            --panel: #1a1a1a;
-            --gradient: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 60%);
-        }
 
-        /* Themes */
-        body.theme-oled { --bg: #000000; --panel: #0a0a0a; --accent: #ff0050; }
-        body.theme-cyber { --bg: #0b0114; --panel: #1a0229; --accent: #00f2ea; --gradient: linear-gradient(0deg, rgba(11,1,20,0.95) 0%, rgba(11,1,20,0) 60%); }
-        body.theme-light { --bg: #f0f2f5; --panel: #ffffff; --accent: #ff0050; --text: #000000; --glass: rgba(0,0,0,0.1); --gradient: linear-gradient(0deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 60%); }
+<meta charset="utf-8" />
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
 
-        html, body {
-            height: 100%;
-            margin: 0;
-            background: var(--bg);
-            color: var(--text);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            overflow: hidden;
-            transition: background 0.3s ease;
-        }
+<title>ScratchTok Ultra — Personalized Feed</title>
 
-        #feed {
-            height: 100vh;
-            overflow-y: scroll;
-            scroll-snap-type: y mandatory;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            scroll-behavior: smooth;
-        }
-        #feed::-webkit-scrollbar { display: none; }
+<style>
 
-        .slide {
-            height: 100vh;
-            width: 100vw;
-            scroll-snap-align: start;
-            display: flex;
-            justify-content: center;
-            background: #000;
-            position: relative;
-        }
+:root {
 
-        .project-container {
-            width: 100%;
-            height: 100%;
-            background: #111;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-        }
+--bg: #050505;
 
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            z-index: 1;
-        }
+--accent: #ff0050;
 
-        .overlay {
-            position: absolute;
-            inset: 0;
-            z-index: 10;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            padding: 20px;
-            padding-bottom: 60px;
-            background: var(--gradient);
-        }
+--glass: rgba(255,255,255,0.15);
 
-        /* Fixed Navigation Buttons */
-        .nav-controls {
-            position: fixed;
-            right: 75px;
-            bottom: 25px;
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+--text: #ffffff;
 
-        .nav-btn {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            background: var(--glass);
-            border: none;
-            color: var(--text);
-            font-size: 18px;
-            cursor: pointer;
-            backdrop-filter: blur(10px);
-            display: grid;
-            place-items: center;
-            transition: all 0.2s;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
-        .nav-btn:hover { background: rgba(255,255,255,0.25); transform: scale(1.1); }
+--panel: #1a1a1a;
 
-        .side-bar {
-            position: absolute;
-            right: 12px;
-            bottom: 110px;
-            z-index: 20;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            pointer-events: auto;
-            align-items: center;
-        }
+--bottom-gradient: linear-gradient(0deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
 
-        .action-btn {
-            background: none;
-            border: none;
-            color: inherit;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            transition: transform 0.1s;
-        }
-        .action-btn:active { transform: scale(0.9); }
+}
 
-        .icon-circle {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: var(--glass);
-            display: grid;
-            place-items: center;
-            backdrop-filter: blur(10px);
-            font-size: 24px;
-            transition: all 0.2s;
-            border: 2px solid transparent;
-        }
-        
-        .action-btn:hover .icon-circle { background: rgba(255,255,255,0.2); }
 
-        /* Specific Button Styles */
-        .open-btn-icon {
-            background: linear-gradient(135deg, var(--accent), #ff4d80);
-            box-shadow: 0 4px 15px rgba(255, 0, 80, 0.4);
-        }
 
-        .action-label { font-size: 11px; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.8); color: white; }
+body.theme-oled { --bg: #000000; --panel: #0a0a0a; --accent: #ff0050; }
 
-        /* Read-only stats */
-        .stat-display {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
+body.theme-cyber { --bg: #0b0114; --panel: #1a0229; --accent: #00f2ea; }
 
-        .stat-item {
-            font-size: 12px;
-            font-weight: 600;
-            color: rgba(255,255,255,0.8);
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            text-shadow: 0 1px 2px black;
-        }
+body.theme-light { --bg: #f0f2f5; --panel: #ffffff; --accent: #ff0050; --text: #000000; --glass: rgba(0,0,0,0.1); --bottom-gradient: linear-gradient(0deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 100%); }
 
-        .author-container {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-            pointer-events: auto;
-        }
 
-        .pfp {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border: 1.5px solid white;
-            background: #333;
-            object-fit: cover;
-        }
 
-        .author-tag {
-            font-size: 16px;
-            font-weight: 700;
-            color: #fff;
-            text-decoration: none;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-        .project-title {
-            font-size: 18px;
-            font-weight: 600;
-            line-height: 1.3;
-            max-width: 80%;
-            color: #fff;
-            margin-top: 4px;
-            word-wrap: break-word;
-            text-shadow: 0 1px 5px rgba(0,0,0,0.8);
-        }
 
-        #settings-btn {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 100;
-            background: var(--glass);
-            border: none;
-            color: var(--text);
-            padding: 10px;
-            border-radius: 50%;
-            cursor: pointer;
-            backdrop-filter: blur(10px);
-            font-size: 18px;
-        }
 
-        #settings-panel {
-            position: fixed;
-            inset: 0;
-            background: var(--panel);
-            z-index: 200;
-            display: none;
-            flex-direction: column;
-            padding: 30px;
-            overflow-y: auto;
-            color: var(--text);
-        }
+html, body {
 
-        .settings-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            border-bottom: 1px solid var(--glass);
-            padding-bottom: 15px;
-        }
+height: 100%;
 
-        .setting-group {
-            background: rgba(128,128,128,0.05);
-            padding: 20px;
-            border-radius: 16px;
-            margin-bottom: 20px;
-            border: 1px solid var(--glass);
-        }
+margin: 0;
 
-        .setting-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
+background: var(--bg);
 
-        select, input {
-            padding: 8px;
-            border-radius: 6px;
-            background: var(--glass);
-            color: inherit;
-            border: 1px solid var(--glass);
-        }
+color: var(--text);
 
-        #loader {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--accent);
-            padding: 10px 20px;
-            border-radius: 30px;
-            font-size: 14px;
-            font-weight: bold;
-            display: none;
-            z-index: 150;
-            color: white;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
-        .algorithm-badge {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(0,0,0,0.6);
-            padding: 5px 10px;
-            border-radius: 6px;
-            font-size: 10px;
-            z-index: 30;
-            color: #fff;
-            text-transform: uppercase;
-            font-weight: bold;
-        }
+overflow: hidden;
 
-        .heart-pop {
-            position: absolute;
-            font-size: 80px;
-            pointer-events: none;
-            z-index: 200;
-            animation: pop 0.8s ease-out forwards;
-        }
+}
 
-        @keyframes pop {
-            0% { transform: scale(0); opacity: 0; }
-            50% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(1); opacity: 0; }
-        }
-    </style>
+
+
+#feed {
+
+height: 100vh;
+
+overflow-y: scroll;
+
+scroll-snap-type: y mandatory;
+
+scrollbar-width: none;
+
+scroll-behavior: smooth;
+
+}
+
+#feed::-webkit-scrollbar { display: none; }
+
+
+
+.slide {
+
+height: 100vh;
+
+width: 100vw;
+
+scroll-snap-align: start;
+
+display: flex;
+
+justify-content: center;
+
+background: #000;
+
+position: relative;
+
+}
+
+
+
+.project-container {
+
+width: 100%;
+
+height: 100%;
+
+background: #111;
+
+position: relative;
+
+overflow: hidden;
+
+display: flex;
+
+align-items: center;
+
+}
+
+
+
+iframe { width: 100%; height: 100%; border: none; z-index: 1; }
+
+
+
+/* Search Header - TikTok Style */
+
+.search-container {
+
+position: fixed;
+
+top: 20px;
+
+left: 50%;
+
+transform: translateX(-50%);
+
+z-index: 150;
+
+width: 90%;
+
+max-width: 450px;
+
+}
+
+
+
+.search-bar {
+
+width: 100%;
+
+background: var(--glass);
+
+backdrop-filter: blur(25px);
+
+border: 1px solid rgba(255,255,255,0.1);
+
+border-radius: 30px;
+
+padding: 12px 25px;
+
+color: white;
+
+outline: none;
+
+font-size: 16px;
+
+transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+
+}
+
+
+
+.search-bar:focus {
+
+background: rgba(255,255,255,0.25);
+
+border-color: var(--accent);
+
+box-shadow: 0 0 0 4px rgba(255, 0, 80, 0.2);
+
+}
+
+
+
+/* Overlays */
+
+.info-overlay {
+
+position: absolute;
+
+bottom: 0;
+
+left: 0;
+
+width: 100%;
+
+z-index: 10;
+
+padding: 20px;
+
+padding-bottom: 50px;
+
+background: var(--bottom-gradient);
+
+pointer-events: none;
+
+transition: opacity 0.5s;
+
+}
+
+.info-overlay.faded { opacity: 0.3; }
+
+.info-overlay:hover, .info-overlay.active { opacity: 1 !important; pointer-events: auto; }
+
+
+
+.side-bar {
+
+position: absolute;
+
+right: 12px;
+
+bottom: 120px;
+
+z-index: 20;
+
+display: flex;
+
+flex-direction: column;
+
+gap: 15px;
+
+align-items: center;
+
+}
+
+
+
+.action-btn {
+
+background: none;
+
+border: none;
+
+color: inherit;
+
+cursor: pointer;
+
+display: flex;
+
+flex-direction: column;
+
+align-items: center;
+
+gap: 4px;
+
+}
+
+
+
+.icon-circle {
+
+width: 48px;
+
+height: 48px;
+
+border-radius: 50%;
+
+background: var(--glass);
+
+display: grid;
+
+place-items: center;
+
+backdrop-filter: blur(10px);
+
+font-size: 22px;
+
+transition: transform 0.2s;
+
+}
+
+.action-btn:active .icon-circle { transform: scale(0.85); }
+
+.action-btn.liked .icon-circle { color: var(--accent); }
+
+
+
+.action-label { font-size: 12px; font-weight: 600; text-shadow: 0 1px 2px #000; color: #fff; }
+
+
+
+.pfp { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #fff; margin-bottom: 5px; }
+
+
+
+.author-tag { font-size: 16px; font-weight: 700; color: #fff; text-decoration: none; }
+
+.project-title { font-size: 14px; color: #eee; margin-top: 4px; max-width: 80%; }
+
+
+
+#settings-btn {
+
+position: fixed;
+
+top: 25px;
+
+left: 20px;
+
+z-index: 200;
+
+background: var(--glass);
+
+border: none;
+
+color: #fff;
+
+width: 40px;
+
+height: 40px;
+
+border-radius: 50%;
+
+cursor: pointer;
+
+backdrop-filter: blur(10px);
+
+}
+
+
+
+.info-modal {
+
+position: fixed;
+
+bottom: 0;
+
+left: 0;
+
+width: 100%;
+
+height: 70%;
+
+background: var(--panel);
+
+z-index: 400;
+
+border-top-left-radius: 20px;
+
+border-top-right-radius: 20px;
+
+transform: translateY(100%);
+
+transition: transform 0.3s ease-out;
+
+padding: 25px;
+
+overflow-y: auto;
+
+}
+
+.info-modal.active { transform: translateY(0); }
+
+
+
+#loading-indicator {
+
+position: fixed;
+
+top: 80px;
+
+left: 50%;
+
+transform: translateX(-50%);
+
+z-index: 140;
+
+background: var(--accent);
+
+padding: 5px 15px;
+
+border-radius: 15px;
+
+font-size: 12px;
+
+color: #fff;
+
+display: none;
+
+}
+
+
+
+.debug-info {
+
+background: rgba(0,0,0,0.3);
+
+padding: 10px;
+
+border-radius: 8px;
+
+font-family: monospace;
+
+font-size: 11px;
+
+margin-top: 20px;
+
+border-left: 3px solid var(--accent);
+
+}
+
+
+
+.heart-pop {
+
+position: absolute;
+
+font-size: 100px;
+
+pointer-events: none;
+
+z-index: 1000;
+
+animation: heart-anim 0.7s ease-out forwards;
+
+}
+
+@keyframes heart-anim {
+
+0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+
+50% { transform: scale(1.2) rotate(10deg); opacity: 1; }
+
+100% { transform: scale(1) rotate(0); opacity: 0; }
+
+}
+
+</style>
+
 </head>
+
 <body>
 
-<button id="settings-btn" onclick="toggleSettings()">⚙️</button>
 
-<div class="nav-controls">
-    <button class="nav-btn" onclick="scrollFeed(-1)">▲</button>
-    <button class="nav-btn" onclick="scrollFeed(1)">▼</button>
+
+<button id="settings-btn" onclick="document.getElementById('settings-panel').style.display='flex'">⚙️</button>
+
+
+
+<div class="search-container">
+
+<input type="text" class="search-bar" placeholder="Search projects or user:name..." id="search-input" onkeydown="if(event.key==='Enter') handleSearch(this.value)">
+
 </div>
 
-<div id="settings-panel">
-    <div class="settings-header">
-        <h1>Settings</h1>
-        <button onclick="toggleSettings()" style="background:none; border:none; color:inherit; font-size:32px; cursor:pointer;">✕</button>
-    </div>
 
-    <div class="setting-group">
-        <h3>Theme & Style</h3>
-        <div class="setting-item">
-            <label>Interface Theme</label>
-            <select id="set-theme" onchange="updateSetting('theme', this.value)">
-                <option value="dark">Standard Dark</option>
-                <option value="oled">Pure OLED</option>
-                <option value="cyber">Cyber Purple</option>
-                <option value="light">Soft Light</option>
-            </select>
-        </div>
-        <div class="setting-item">
-            <label>Hide Labels</label>
-            <input type="checkbox" id="set-hidebadges" onchange="updateSetting('hideBadges', this.checked)">
-        </div>
-    </div>
 
-    <div class="setting-group">
-        <h3>Simulator</h3>
-        <div class="setting-item">
-            <label>Player Engine</label>
-            <select id="set-engine" onchange="updateSetting('engine', this.value)">
-                <option value="turbowarp">TurboWarp</option>
-                <option value="scratch">Official Scratch</option>
-                <option value="penguinmod">PenguinMod</option>
-            </select>
-        </div>
-        <div class="setting-item">
-            <label>60 FPS Interpolation</label>
-            <input type="checkbox" id="set-interp" onchange="updateSetting('interpolation', this.checked)">
-        </div>
-    </div>
+<div id="loading-indicator">Updating feed...</div>
+
+
+
+<div id="settings-panel" style="position:fixed; inset:0; background:var(--panel); z-index:500; display:none; flex-direction:column; padding:40px;">
+
+<h1>Settings</h1>
+
+<label>Interface Theme</label>
+
+<select onchange="updateSetting('theme', this.value)" style="margin-bottom:20px; padding:10px;">
+
+<option value="dark">Dark</option>
+
+<option value="oled">OLED</option>
+
+<option value="cyber">Cyber</option>
+
+<option value="light">Light</option>
+
+</select>
+
+<div style="display:flex; justify-content:space-between;">
+
+<label>Developer Mode</label>
+
+<input type="checkbox" id="dev-check" onchange="updateSetting('devMode', this.checked)">
+
 </div>
 
-<div id="loader">SEARCHING...</div>
+<button onclick="this.parentElement.style.display='none'" style="margin-top:auto; padding:15px; background:var(--accent); border:none; color:white; border-radius:10px;">Close</button>
+
+</div>
+
+
+
+<div id="info-modal" class="info-modal">
+
+<div style="display:flex; justify-content:space-between; align-items:center;">
+
+<h2 id="modal-title">Project Info</h2>
+
+<button onclick="closeModal()" style="font-size:24px; background:none; border:none; color:inherit;">✕</button>
+
+</div>
+
+<div id="modal-body"></div>
+
+</div>
+
+
+
 <div id="feed"></div>
 
-<script>
-const DEFAULT_SETTINGS = {
-    engine: 'turbowarp',
-    hideBadges: false,
-    interpolation: true,
-    theme: 'dark',
-    overlayOpacity: 90,
-    loadAhead: 5
-};
 
-let settings = JSON.parse(localStorage.getItem('user_settings') || JSON.stringify(DEFAULT_SETTINGS));
+
+<script>
 
 const state = {
-    likedTags: JSON.parse(localStorage.getItem('liked_tags') || '{}'),
-    seen: new Set(JSON.parse(localStorage.getItem('seen_projects') || '[]')),
-    isFetching: false,
-    offsets: { trending: 0, search: {} },
-    activeId: null
+
+activeId: null,
+
+isFetching: false,
+
+history: JSON.parse(localStorage.getItem('watched_history') || '{}'),
+
+likes: JSON.parse(localStorage.getItem('liked_ids') || '{}'),
+
+settings: JSON.parse(localStorage.getItem('user_settings') || '{"theme":"dark","devMode":false}'),
+
+searchQuery: '',
+
+userQuery: '',
+
+offsets: { trending: 0, search: 0 }
+
 };
 
-const feed = document.getElementById('feed');
-const loader = document.getElementById('loader');
+
 
 async function apiRequest(url) {
-    try {
-        const r = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent(url));
-        const j = await r.json();
-        return JSON.parse(j.contents);
-    } catch { return []; }
+
+// Scratch API blocks most browser requests via CORS.
+
+// We must use a proxy to successfully fetch data in a browser environment.
+
+try {
+
+const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+
+const response = await fetch(proxyUrl);
+
+if (!response.ok) throw new Error('Proxy request failed');
+
+const data = await response.json();
+
+return JSON.parse(data.contents);
+
+} catch (err) {
+
+console.error("API Request Error:", err);
+
+return null;
+
 }
 
-function extractHashtags(project) {
-    const text = (project.description || '') + ' ' + (project.instructions || '');
-    const tags = text.match(/#\w+/g) || [];
-    return [...new Set(tags.map(t => t.toLowerCase().replace('#', '')))];
 }
 
-async function getRecommendedProjects() {
-    if (state.isFetching) return [];
-    state.isFetching = true;
-    loader.style.display = 'block';
 
-    const pool = [];
-    const totalNeeded = parseInt(settings.loadAhead);
-    
-    // Algorithm logic: Search by liked tags or get trending
-    const tagEntries = Object.entries(state.likedTags);
-    if (tagEntries.length > 0) {
-        const selectedTag = tagEntries[Math.floor(Math.random() * tagEntries.length)][0];
-        const offset = state.offsets.search[selectedTag] || 0;
-        const res = await apiRequest(`https://api.scratch.mit.edu/search/projects?q=${selectedTag}&limit=10&offset=${offset}`);
-        if (res && res.length) {
-            res.forEach(p => { p._algSource = `#${selectedTag}`; pool.push(p); });
-            state.offsets.search[selectedTag] = offset + 10;
-        }
-    }
 
-    const trending = await apiRequest(`https://api.scratch.mit.edu/explore/projects?limit=20&offset=${state.offsets.trending}&mode=trending`);
-    state.offsets.trending += 20;
-    if (trending && trending.length) {
-        trending.forEach(p => { p._algSource = "Discovery"; pool.push(p); });
-    }
+async function handleSearch(val) {
 
-    loader.style.display = 'none';
-    state.isFetching = false;
-    return pool.filter(p => p && p.id && !state.seen.has(p.id)).sort(() => Math.random() - 0.5);
+if (!val) return;
+
+document.getElementById('loading-indicator').style.display = 'block';
+
+
+// Reset state
+
+document.getElementById('feed').innerHTML = '';
+
+state.offsets = { trending: 0, search: 0 };
+
+
+if (val.startsWith('user:')) {
+
+state.userQuery = val.split(':')[1].trim();
+
+state.searchQuery = '';
+
+window.location.hash = `/user/${state.userQuery}`;
+
+} else {
+
+state.searchQuery = val;
+
+state.userQuery = '';
+
+window.location.hash = `/${val}`; // Will be handled as search if not numeric
+
 }
 
-function getIframeUrl(id) {
-    if (settings.engine === 'turbowarp') {
-        return `https://turbowarp.org/${id}/embed?autoplay=true&fps=30${settings.interpolation ? '&interpolate=true' : ''}`;
-    } else if (settings.engine === 'penguinmod') {
-        return `https://penguinmod.com/projects/${id}/embed?autoplay=true`;
-    }
-    return `https://scratch.mit.edu/projects/${id}/embed?autoplay=true`;
+
+await loadBatch();
+
+document.getElementById('loading-indicator').style.display = 'none';
+
 }
 
-function createSlide(project) {
-    const slide = document.createElement('div');
-    slide.className = 'slide';
-    slide.dataset.id = project.id;
 
-    const pfpUrl = project.author.id 
-        ? `https://uploads.scratch.mit.edu/get_image/user/${project.author.id}_60x60.png`
-        : `https://cdn2.scratch.mit.edu/get_image/user/default_60x60.png`;
 
-    slide.innerHTML = `
-        <div class="project-container" id="container-${project.id}">
-            <div class="algorithm-badge" style="display:${settings.hideBadges ? 'none' : 'block'}">${project._algSource || 'New'}</div>
-            <div class="overlay">
-                <div class="author-container">
-                    <img class="pfp" src="${pfpUrl}" onerror="this.src='https://cdn2.scratch.mit.edu/get_image/user/default_60x60.png'" alt="">
-                    <a href="https://scratch.mit.edu/users/${project.author.username}" target="_blank" class="author-tag">@${project.author.username}</a>
-                </div>
-                <div class="project-title">${project.title}</div>
-            </div>
-            <div class="side-bar">
-                <!-- Interactive Like -->
-                <button class="action-btn" onclick="handleLike(this, ${project.id})">
-                    <div class="icon-circle">❤️</div>
-                    <span class="action-label">Like</span>
-                </button>
-                
-                <!-- Open Project (New) -->
-                <button class="action-btn" onclick="window.open('https://scratch.mit.edu/projects/${project.id}', '_blank')">
-                    <div class="icon-circle open-btn-icon">🚀</div>
-                    <span class="action-label">View</span>
-                </button>
+async function loadBatch() {
 
-                <!-- Share -->
-                <button class="action-btn" onclick="shareProject(${project.id})">
-                    <div class="icon-circle">↗️</div>
-                    <span class="action-label">Share</span>
-                </button>
+if (state.isFetching) return;
 
-                <!-- Unclickable Stats -->
-                <div class="stat-display">
-                    <div class="stat-item">❤️ ${num(project.stats?.loves || 0)}</div>
-                    <div class="stat-item">⭐ ${num(project.stats?.favorites || 0)}</div>
-                </div>
-            </div>
-        </div>
-    `;
+state.isFetching = true;
 
-    slide.addEventListener('dblclick', e => { heart(e); handleLike(slide.querySelector('.action-btn'), project.id); });
-    return slide;
+
+
+let url = `https://api.scratch.mit.edu/explore/projects?limit=15&offset=${state.offsets.trending}&mode=trending`;
+
+let source = "Trending";
+
+
+
+if (state.userQuery) {
+
+url = `https://api.scratch.mit.edu/users/${state.userQuery}/projects?limit=15&offset=${state.offsets.search}`;
+
+source = `User: ${state.userQuery}`;
+
+} else if (state.searchQuery) {
+
+url = `https://api.scratch.mit.edu/search/projects?q=${encodeURIComponent(state.searchQuery)}&limit=15&offset=${state.offsets.search}`;
+
+source = `Search: ${state.searchQuery}`;
+
 }
 
-function inject(id) {
-    document.querySelectorAll('.project-container iframe').forEach(f => { f.src = 'about:blank'; f.remove(); });
-    const c = document.getElementById(`container-${id}`);
-    if (!c) return;
-    const i = document.createElement('iframe');
-    i.src = getIframeUrl(id);
-    i.allow = 'fullscreen; autoplay';
-    c.appendChild(i);
-    state.activeId = id;
-    state.seen.add(id);
-    localStorage.setItem('seen_projects', JSON.stringify([...state.seen].slice(-200)));
-}
 
-const observer = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-        const id = e.target.dataset.id;
-        if (e.isIntersecting && e.intersectionRatio >= 0.5) {
-            if (state.activeId !== id) inject(id);
-        } else if (!e.isIntersecting) {
-            const iframe = e.target.querySelector('iframe');
-            if (iframe) { iframe.src = 'about:blank'; iframe.remove(); }
-        }
-    });
-}, { threshold: [0, 0.5] });
 
-async function loadMore() {
-    const projects = await getRecommendedProjects();
-    projects.forEach(p => {
-        const s = createSlide(p);
-        feed.appendChild(s);
-        observer.observe(s);
-    });
-}
+const projects = await apiRequest(url);
 
-function scrollFeed(dir) {
-    feed.scrollBy({ top: window.innerHeight * dir, behavior: 'smooth' });
-}
+if (projects && Array.isArray(projects)) {
 
-async function handleLike(btn, projectId) {
-    if (btn.dataset.liked) return;
-    btn.dataset.liked = "true";
-    btn.querySelector('.icon-circle').style.color = '#ff0050';
-    const details = await apiRequest(`https://api.scratch.mit.edu/projects/${projectId}`);
-    const tags = extractHashtags(details);
-    tags.forEach(t => state.likedTags[t] = (state.likedTags[t] || 0) + 1);
-    localStorage.setItem('liked_tags', JSON.stringify(state.likedTags));
-}
+projects.forEach(p => {
 
-function applyTheme() {
-    document.body.className = `theme-${settings.theme}`;
-}
+p._source = source;
 
-function toggleSettings() {
-    const panel = document.getElementById('settings-panel');
-    panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
-    if (panel.style.display === 'flex') {
-        document.getElementById('set-theme').value = settings.theme;
-        document.getElementById('set-engine').value = settings.engine;
-        document.getElementById('set-interp').checked = settings.interpolation;
-        document.getElementById('set-hidebadges').checked = settings.hideBadges;
-    }
-}
+const slide = createSlide(p);
 
-function updateSetting(key, val) {
-    settings[key] = val;
-    localStorage.setItem('user_settings', JSON.stringify(settings));
-    if (key === 'theme') applyTheme();
-    if (['engine', 'interpolation'].includes(key)) {
-        document.querySelectorAll('iframe').forEach(i => i.remove());
-        state.activeId = null;
-    }
-}
+document.getElementById('feed').appendChild(slide);
 
-function heart(e) {
-    const h = document.createElement('div');
-    h.className = 'heart-pop'; h.textContent = '❤️';
-    h.style.left = e.clientX - 40 + 'px'; h.style.top = e.clientY - 40 + 'px';
-    document.body.appendChild(h);
-    setTimeout(() => h.remove(), 800);
-}
+observer.observe(slide);
 
-function num(n) { return n >= 1000 ? (n/1000).toFixed(1)+'K' : n; }
-
-function shareProject(id) {
-    const el = document.createElement('textarea');
-    el.value = `https://scratch.mit.edu/projects/${id}`;
-    document.body.appendChild(el); el.select();
-    document.execCommand('copy'); document.body.removeChild(el);
-}
-
-feed.addEventListener('scroll', () => {
-    if (feed.scrollHeight - (feed.scrollTop + feed.clientHeight) < 1500) loadMore();
 });
 
-applyTheme();
-loadMore();
+state.offsets.trending += 15;
+
+state.offsets.search += 15;
+
+}
+
+state.isFetching = false;
+
+}
+
+
+
+function createSlide(p) {
+
+const s = document.createElement('div');
+
+s.className = 'slide';
+
+s.dataset.id = p.id;
+
+s.dataset.raw = JSON.stringify({
+
+title: p.title,
+
+author: p.author?.username,
+
+desc: p.description || '',
+
+instr: p.instructions || '',
+
+source: p._source,
+
+id: p.id
+
+});
+
+
+
+const isLiked = state.likes[p.id];
+
+const pfp = p.author ? `https://uploads.scratch.mit.edu/get_image/user/${p.author.id}_60x60.png` : '';
+
+
+
+s.innerHTML = `
+
+<div class="project-container" id="container-${p.id}">
+
+<div class="info-overlay">
+
+<div class="author-tag">@${p.author?.username || 'unknown'}</div>
+
+<div class="project-title">${p.title}</div>
+
+</div>
+
+<div class="side-bar">
+
+<img class="pfp" src="${pfp}" onerror="this.style.display='none'">
+
+<button class="action-btn ${isLiked ? 'liked' : ''}" onclick="toggleLike(this, ${p.id})">
+
+<div class="icon-circle">❤️</div>
+
+<span class="action-label">Like</span>
+
+</button>
+
+<button class="action-btn" onclick="showInfo(${p.id})">
+
+<div class="icon-circle">📝</div>
+
+<span class="action-label">Info</span>
+
+</button>
+
+</div>
+
+</div>
+
+`;
+
+
+
+s.addEventListener('dblclick', (e) => {
+
+spawnHeart(e);
+
+const btn = s.querySelector('.action-btn');
+
+if (!btn.classList.contains('liked')) toggleLike(btn, p.id);
+
+});
+
+
+
+return s;
+
+}
+
+
+
+function spawnHeart(e) {
+
+const h = document.createElement('div');
+
+h.className = 'heart-pop';
+
+h.innerHTML = '❤️';
+
+h.style.left = `${e.clientX - 50}px`;
+
+h.style.top = `${e.clientY - 50}px`;
+
+document.body.appendChild(h);
+
+setTimeout(() => h.remove(), 700);
+
+}
+
+
+
+function toggleLike(btn, id) {
+
+const liked = btn.classList.toggle('liked');
+
+if (liked) state.likes[id] = true;
+
+else delete state.likes[id];
+
+localStorage.setItem('liked_ids', JSON.stringify(state.likes));
+
+}
+
+
+
+function showInfo(id) {
+
+const slide = document.querySelector(`.slide[data-id="${id}"]`);
+
+const data = JSON.parse(slide.dataset.raw);
+
+const modal = document.getElementById('info-modal');
+
+const body = document.getElementById('modal-body');
+
+
+let debugHtml = '';
+
+if (state.settings.devMode) {
+
+debugHtml = `<div class="debug-info">DEBUG: id=${data.id} | src=${data.source}</div>`;
+
+}
+
+
+
+body.innerHTML = `
+
+<h3>Instructions</h3><p>${data.instr || 'None'}</p>
+
+<hr>
+
+<h3>Notes</h3><p>${data.desc || 'None'}</p>
+
+${debugHtml}
+
+<div style="margin-top:20px; font-size:12px; color:#888;">Project ID: ${data.id} • ${data.source}</div>
+
+`;
+
+modal.classList.add('active');
+
+}
+
+
+
+function closeModal() { document.getElementById('info-modal').classList.remove('active'); }
+
+
+
+function injectIframe(id) {
+
+document.querySelectorAll('iframe').forEach(f => f.remove());
+
+const container = document.getElementById(`container-${id}`);
+
+const i = document.createElement('iframe');
+
+i.src = `https://turbowarp.org/${id}/embed?autoplay=true&interpolate=true`;
+
+i.allow = "fullscreen; autoplay";
+
+container.appendChild(i);
+
+state.activeId = id;
+
+window.location.hash = `#/${id}`;
+
+}
+
+
+
+const observer = new IntersectionObserver((entries) => {
+
+entries.forEach(e => {
+
+if (e.isIntersecting && e.intersectionRatio > 0.6) {
+
+const id = e.target.dataset.id;
+
+if (state.activeId !== id) injectIframe(id);
+
+}
+
+});
+
+}, { threshold: 0.7 });
+
+
+
+document.getElementById('feed').onscroll = () => {
+
+const f = document.getElementById('feed');
+
+if (f.scrollTop + f.clientHeight > f.scrollHeight - 1000) loadBatch();
+
+};
+
+
+
+function updateSetting(key, val) {
+
+state.settings[key] = val;
+
+localStorage.setItem('user_settings', JSON.stringify(state.settings));
+
+document.body.className = `theme-${state.settings.theme}`;
+
+}
+
+
+
+// Deep Linking & Initial Load
+
+async function init() {
+
+updateSetting('theme', state.settings.theme);
+
+document.getElementById('dev-check').checked = state.settings.devMode;
+
+
+const hash = window.location.hash.slice(2); // Remove #/
+
+if (hash) {
+
+if (!isNaN(hash)) {
+
+// Jump to specific project
+
+const p = await apiRequest(`https://api.scratch.mit.edu/projects/${hash}`);
+
+if (p) {
+
+const s = createSlide(p);
+
+document.getElementById('feed').appendChild(s);
+
+observer.observe(s);
+
+}
+
+} else if (hash.startsWith('user/')) {
+
+handleSearch(`user:${hash.split('/')[1]}`);
+
+return;
+
+} else {
+
+handleSearch(hash);
+
+return;
+
+}
+
+}
+
+loadBatch();
+
+}
+
+
+
+window.onload = init;
+
 </script>
+
 </body>
+
 </html>
